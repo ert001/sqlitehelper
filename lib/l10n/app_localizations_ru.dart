@@ -9,7 +9,7 @@ class AppLocalizationsRu extends AppLocalizations {
   AppLocalizationsRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get title => 'SQLite DB Viwer';
+  String get title => 'SQLite DB Viewer';
 
   @override
   String get viewDB => 'Обзор БД';

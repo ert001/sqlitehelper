@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import './database/database.dart';
 import 'package:sqlitehelper/maindrawer.dart';
 import 'mainappbar.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,17 +13,25 @@ void openDBFile() async {
 
   if (result != null) {
     File file = File(result.files.single.path!);
+    Database.open(file.path);
   } else {
     // User canceled the picker
   }
 }
 
-void main() {
-  runApp(const MyApp());
+void main(List<String> args) {
+  String? dbName;
+
+  if (args.isNotEmpty) dbName = args[0];
+  runApp(MyApp(dbName: dbName));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String? dbName;
+
+  MyApp({super.key, this.dbName}) {
+    if (dbName != null) Database.open(dbName!);
+  }
 
   // This widget is the root of your application.
   @override

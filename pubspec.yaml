@@ -39,6 +39,7 @@ dependencies:
   intl: any
 
   file_picker: ^6.0.0 
+  sqlite3: ^2.9.4
 
 dev_dependencies:
   flutter_test:

@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get title => 'SQLite DB Viwer';
+  String get title => 'SQLite DB Viewer';
 
   @override
   String get viewDB => 'View database';

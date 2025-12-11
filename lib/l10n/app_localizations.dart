@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// The App title
   ///
   /// In en, this message translates to:
-  /// **'SQLite DB Viwer'**
+  /// **'SQLite DB Viewer'**
   String get title;
 
   /// View database
