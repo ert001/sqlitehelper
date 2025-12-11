@@ -1,0 +1,15 @@
+{
+    "title" : "SQLite DB Viewer",
+    "@title": {
+        "description": "The App title"
+    },
+    "viewDB" : "View database",
+    "@viewDB" : {
+        "description": "View database"
+    },
+
+    "openDB" : "Open DB file",
+    "@openDB" : {
+        "context": "Open database file"
+    }
+}
