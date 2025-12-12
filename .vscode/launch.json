@@ -11,7 +11,12 @@
             "type": "dart",
             "args": [
                 "--dart-entrypoint-args", "/Users/denismosyagin/Documents/Works/Napoleon/Grospiron/napoleon.db"
-            ]
+            ],
+            "windows": {
+                "args": [
+                    "--dart-entrypoint-args", "C:\\Works\\Napoleon\\Projects\\Grospiron\\napoleon.db"
+                ]
+            }
         },
         {
             "name": "sqlitehelper (profile mode)",
