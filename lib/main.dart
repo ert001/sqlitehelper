@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:master_detail_flow/master_detail_flow.dart';
 import './database/database.dart';
 import 'package:sqlitehelper/maindrawer.dart';
 import 'mainappbar.dart';
@@ -19,11 +21,34 @@ void openDBFile() async {
   }
 }
 
-void main(List<String> args) {
+Future<void> createNewWindow() async {
+  // Create a new window
+  final controller = await WindowController.create(
+    WindowConfiguration(
+      hiddenAtLaunch: true,
+      arguments: 'YOUR_WINDOW_ARGUMENTS_HERE',
+    ),
+  );
+
+  // // Show the window (if hidden at launch)
+  // await controller.show();
+}
+
+Future<void> main(List<String> args) async {
   String? dbName;
 
   if (args.isNotEmpty) dbName = args[0];
-  runApp(MyApp(dbName: dbName));
+
+  WidgetsFlutterBinding.ensureInitialized();
+  final windowController = await WindowController.fromCurrentEngine();
+  final winArgs = windowController.arguments;
+
+  if (winArgs.isEmpty) {
+    runApp(MyApp(dbName: dbName));
+  } else {
+    windowController.show();
+    runApp(MyApp(dbName: null));
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -50,7 +75,49 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: MyHomePage(),
+      home: MDPage(),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DetailsPageScaffold(body: const Text("Test"));
+  }
+}
+
+class MDPage extends StatelessWidget {
+  const MDPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MDScaffold(
+      title: const Text('Simple flow'),
+      items: [
+        DrawerHeader(child: Center(child: Text('A flow'))),
+
+        ListTile(title: Text("Open DB"), onTap: () => openDBFile()),
+        ListTile(title: Text("New windows"), onTap: () => createNewWindow()),
+
+        MDItem(
+          title: const Text('Master item 1'),
+          pageBuilder: (_) => const HomePage(),
+          panelPadding: const EdgeInsets.all(0),
+        ),
+        MDItem(
+          title: const Text('Master item 2'),
+          pageBuilder: (_) => const HomePage(),
+        ),
+        // This padding aligns the divider with the edges of the tiles
+        const MDPadding(child: Divider()),
+        MDItem(
+          title: const Text('Master item 3'),
+          pageBuilder: (_) => const HomePage(),
+        ),
+      ],
     );
   }
 }
@@ -82,7 +149,10 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(loc.title),
       ),
-      drawer: MainDrawer(onOpenDB: () => openDBFile()),
+      drawer: MainDrawer(
+        onOpenDB: () => openDBFile(),
+        onNewWindow: () => createNewWindow(),
+      ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.

@@ -3,8 +3,13 @@ import 'package:sqlitehelper/l10n/app_localizations.dart';
 
 class DrawerMenu extends StatelessWidget {
   final void Function() onOpenDB;
+  final void Function() onNewWindow;
 
-  const DrawerMenu({super.key, required this.onOpenDB});
+  const DrawerMenu({
+    super.key,
+    required this.onOpenDB,
+    required this.onNewWindow,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,14 +20,21 @@ class DrawerMenu extends StatelessWidget {
       children: [
         DrawerHeader(child: Text(loc.title)),
         ListTile(title: Text(loc.openDB), onTap: () => onOpenDB()),
+        ListTile(title: Text("New windows"), onTap: () => onNewWindow()),
       ],
     );
   }
 }
 
 class MainDrawer extends Drawer {
-  final void Function() onOpenDB;
+  // final void Function() onOpenDB;
+  // final void Function() onNewWindow;
 
-  MainDrawer({super.key, required this.onOpenDB})
-    : super(child: DrawerMenu(onOpenDB: onOpenDB));
+  MainDrawer({
+    super.key,
+    required void Function() onOpenDB,
+    required Function() onNewWindow,
+  }) : super(
+         child: DrawerMenu(onOpenDB: onOpenDB, onNewWindow: onNewWindow),
+       );
 }
