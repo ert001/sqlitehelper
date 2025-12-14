@@ -38,11 +38,13 @@ dependencies:
     sdk: flutter
   intl: any
 
-  file_picker: ^6.0.0 
-  sqlite3: ^2.9.4
+  file_picker: ^10.3.7 
+  sqlite3: ^3.1.1
   sqlite3_flutter_libs: ^0.5.41
   desktop_multi_window: ^0.3.0
   master_detail_flow: ^3.1.0
+  provider: ^6.1.5+1
+  two_dimensional_scrollables: ^0.3.7
 
 dev_dependencies:
   flutter_test:
@@ -53,7 +55,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

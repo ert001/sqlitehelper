@@ -1,16 +1,18 @@
 # sqlitehelper
 
-A new Flutter project.
+SQLite database viewer.
 
-## Getting Started
+## Folder structure
 
-This project is a starting point for a Flutter application.
+### database
 
-A few resources to get you started if this is your first Flutter project:
+Classes, functions to represents SQLite entities in the program.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### views
+
+Contains models & view. Model implement ChangeNotifierProvider for database entities.
+Views is consumers of models. There are views for a different db entities.
+
+The model for the view contains into same file or samle folder inside views folder like view.
+

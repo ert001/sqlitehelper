@@ -1,6 +1,8 @@
 import 'package:sqlite3/common.dart';
 import 'package:sqlite3/sqlite3.dart' as sq;
 
+// Classes, types, functions to represents sqlite database entities.
+
 enum ColumnType { text, integer, real, blob, none }
 
 ColumnType stringToType(String type) {
@@ -82,6 +84,10 @@ class Database {
           ;
       }
     }
+  }
+
+  ResultSet query(String stmt, [List<Object?> parameters = const []]) {
+    return db.select(stmt, parameters);
   }
 
   static Map<String, Database> databases = {};

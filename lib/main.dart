@@ -4,7 +4,10 @@ import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:master_detail_flow/master_detail_flow.dart';
-import './database/database.dart';
+import 'package:provider/provider.dart';
+import 'package:sqlitehelper/database/queryresult.dart';
+import 'package:sqlitehelper/views/queryresult.dart';
+import 'database/database.dart';
 import 'package:sqlitehelper/maindrawer.dart';
 import 'mainappbar.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -52,11 +55,10 @@ Future<void> main(List<String> args) async {
 }
 
 class MyApp extends StatelessWidget {
-  final String? dbName;
+  final Database? database;
 
-  MyApp({super.key, this.dbName}) {
-    if (dbName != null) Database.open(dbName!);
-  }
+  MyApp({super.key, required String? dbName})
+    : database = dbName == null ? null : Database.open(dbName);
 
   // This widget is the root of your application.
   @override
@@ -75,7 +77,25 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: MDPage(),
+      home: database == null ? MDPage() : ViewResultTest(database: database!),
+    );
+  }
+}
+
+class ViewResultTest extends StatelessWidget {
+  final Database database;
+  final QueryResultModel resultModel;
+
+  ViewResultTest({super.key, required this.database})
+    : resultModel = QueryResultModel(
+        result: QueryResult(result: database.query("select * from Org")),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => resultModel,
+      child: Scaffold(body: QueryResultView()),
     );
   }
 }
