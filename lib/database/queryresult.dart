@@ -10,10 +10,10 @@ class QueryColumn {
 
   const QueryColumn({required this.name, required this.index});
 
-  String value(Row row) {
-    final result = row[index];
-    return result is String ? result : "";
-  }
+  // String value(Row row) {
+  //   final result = row[index];
+  //   return result is String ? result : "";
+  // }
 }
 
 class QueryResult {
@@ -28,15 +28,15 @@ class QueryResult {
     }
   }
 
-  String cellValue(int row, int column) {
+  dynamic cellValue(int row, int column) {
     if (row < 0 ||
         row >= result.length ||
         column < 0 ||
         column >= columns.length) {
-      return "";
+      return null;
     }
 
-    return columns[column].value(result[row]);
+    return result[row][column];
   }
 
   int get length => result.length;

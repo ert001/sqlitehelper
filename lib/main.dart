@@ -95,7 +95,17 @@ class ViewResultTest extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => resultModel,
-      child: Scaffold(body: QueryResultView()),
+      child: Scaffold(
+        body: QueryResultView(
+          onEditCell: (cell) {
+            final newCell = Cell(
+              location: cell.location,
+              value: CellValue(value: "test"),
+            );
+            resultModel.changeCell(newCell);
+          },
+        ),
+      ),
     );
   }
 }
