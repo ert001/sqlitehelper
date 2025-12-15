@@ -88,7 +88,10 @@ class ViewResultTest extends StatelessWidget {
 
   ViewResultTest({super.key, required this.database})
     : resultModel = QueryResultModel(
-        result: QueryResult(result: database.query("select * from Org")),
+        result: QueryResult(
+          result: database.query("select rowid, * from Org"),
+          database: database,
+        ),
       );
 
   @override

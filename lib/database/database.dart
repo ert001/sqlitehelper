@@ -37,6 +37,14 @@ class DBTable {
 
   DBTable._({required this.name, required this.createStmt});
 
+  DBColumn? getColumn(String name) {
+    for (final c in columns) {
+      if (c.name == name) return c;
+    }
+
+    return null;
+  }
+
   static DBTable create(sq.Database db, Row schemaRow) {
     final table = DBTable._(name: schemaRow[1], createStmt: schemaRow[3]);
 
@@ -66,6 +74,13 @@ class Database {
 
   Database._({required this.db}) {
     loadDBInfo();
+  }
+
+  DBTable? getTable(String? tableName) {
+    for (final t in tables) {
+      if (t.name == tableName) return t;
+    }
+    return null;
   }
 
   void loadDBInfo() {
@@ -103,6 +118,7 @@ class Database {
         db = Database._(db: dbint);
         databases[dbName] = db;
       } catch (e) {
+        db = null;
         // ok
       }
     }
