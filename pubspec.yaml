@@ -22,7 +22,7 @@ version: 1.0.0+1
 #   user_defines:
 #     sqlite3:
 #       source: source
-#       path: C:\Works\sqlitehelper\sqlitehelper\sqlite3\sqlite3.c # relative to your workspace root
+#       path: sqlite3/sqlite3.c # relative to your workspace root
 #       defines: # optional
 #         default_options: false # optional, to disable default compile-time options used by package:sqlite3
 #         defines:
