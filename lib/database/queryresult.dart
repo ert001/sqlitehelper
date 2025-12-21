@@ -1,62 +1,48 @@
-import 'package:sqlite3/sqlite3.dart' as sqlite;
+import 'package:sqlite_ffi/sqlite_ffi.dart';
 import 'package:sqlitehelper/database/database.dart';
 
-/// The column of the reulst
-class QueryColumn {
-  /// The colummn name
-  final String name;
-
-  /// The index of the column in the Row
-  final int index;
-
-  /// Data type of the column
-  final ColumnType type;
-
-  /// The database table for this column
-  final DBTable? table;
-
-  const QueryColumn({
-    required this.name,
-    required this.index,
-    required this.type,
-    this.table,
-  });
-
-  // String value(Row row) {
-  //   final result = row[index];
-  //   return result is String ? result : "";
-  // }
-}
-
 class QueryResult {
-  final sqlite.ResultSet result;
+  final Statement _statment;
+  final _result = <RowResult>[];
 
-  final columns = <QueryColumn>[];
-
-  QueryResult({required this.result, required Database database}) {
-    int index = 0;
-    final tableNames = result.tableNames;
-    for (final name in result.columnNames) {
-      final tn = tableNames == null ? null : tableNames[index];
-      final table = database.getTable(tn);
-      final type = table?.getColumn(name)?.type ?? ColumnType.none;
-
-      columns.add(
-        QueryColumn(name: name, index: index++, type: type, table: table),
-      );
+  QueryResult({required Statement statment, required Database database})
+    : _statment = statment {
+    for (final r in statment) {
+      _result.add(r);
     }
   }
 
   dynamic cellValue(int row, int column) {
-    if (row < 0 ||
-        row >= result.length ||
-        column < 0 ||
-        column >= columns.length) {
+    if (row < 0 || row >= _result.length) {
       return null;
     }
 
-    return result[row][column];
+    return _result[row][column];
   }
 
-  int get length => result.length;
+  int get length => _result.length;
+
+  bool get readOnly => true;
+
+  List<Column> get columns => _statment.columns;
+}
+
+/// Select rowid and all columns
+/// Hide rowid column
+class TableDataResult extends QueryResult {
+  final DBTable table;
+
+  TableDataResult({required this.table, required super.database})
+    : super(statment: database.query("SELECT ROWID, * FROM [${table.name}]")!);
+
+  @override
+  bool get readOnly => false;
+
+  @override
+  List<Column> get columns => _statment.columns.skip(1).toList();
+
+  @override
+  cellValue(int row, int column) {
+    return super.cellValue(row, column + 1);
+  }
 }

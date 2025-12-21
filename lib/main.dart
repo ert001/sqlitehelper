@@ -11,6 +11,7 @@ import 'database/database.dart';
 import 'package:sqlitehelper/maindrawer.dart';
 import 'mainappbar.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:sqlite_ffi/sqlite_ffi.dart' as sq;
 import 'l10n/app_localizations.dart';
 
 void openDBFile() async {
@@ -65,6 +66,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     const title = "SQLite DB Viewer";
 
+    final table = database?.getTable("Org");
+
     return MaterialApp(
       title: title,
       localizationsDelegates: [
@@ -77,7 +80,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: database == null ? MDPage() : ViewResultTest(database: database!),
+      home: table == null
+          ? MDPage()
+          : ViewResultTest(
+              database: database!,
+              resultModel: QueryResultModel(
+                result: TableDataResult(table: table!, database: database!),
+              ),
+            ),
     );
   }
 }
@@ -86,13 +96,11 @@ class ViewResultTest extends StatelessWidget {
   final Database database;
   final QueryResultModel resultModel;
 
-  ViewResultTest({super.key, required this.database})
-    : resultModel = QueryResultModel(
-        result: QueryResult(
-          result: database.query("select rowid, * from Org"),
-          database: database,
-        ),
-      );
+  const ViewResultTest({
+    super.key,
+    required this.database,
+    required this.resultModel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -101,10 +109,14 @@ class ViewResultTest extends StatelessWidget {
       child: Scaffold(
         body: QueryResultView(
           onEditCell: (cell) {
-            final newCell = Cell(
-              location: cell.location,
-              value: CellValue(value: "test"),
+            final value = 'test';
+            final refCell = sq.Cell(
+              value: value,
+              column: cell.value.column,
+              type: cell.value.type,
             );
+
+            final newCell = Cell(location: cell.location, value: refCell);
             resultModel.changeCell(newCell);
           },
         ),

@@ -6,17 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sqlitehelper/database/queryresult.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
-class CellValue {
-  final dynamic value;
-
-  CellValue({required this.value});
-
-  String? stringValue() {
-    if (value == null) return value;
-    if (value is String) return value;
-    return value.toString();
-  }
-}
+import 'package:sqlite_ffi/sqlite_ffi.dart' as sq;
 
 class CellLocation {
   final int column;
@@ -38,7 +28,7 @@ class CellLocation {
 }
 
 class Cell {
-  final CellValue value;
+  final sq.Cell value;
   final CellLocation location;
 
   Cell({required this.value, required this.location});
@@ -55,7 +45,7 @@ class _CopyToClipboardIntent extends Intent {
 class QueryResultModel extends ChangeNotifier {
   QueryResult _result;
 
-  final _changedCells = <CellLocation, CellValue>{};
+  final _changedCells = <CellLocation, sq.Cell>{};
 
   QueryResultModel({required QueryResult result}) : _result = result;
 
@@ -72,14 +62,16 @@ class QueryResultModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  CellValue value(int column, int row) {
+  sq.Cell? value(int column, int row) {
     final loc = CellLocation(column: column, row: row);
     final chValue = _changedCells[loc];
 
-    return chValue ?? CellValue(value: _result.cellValue(row, column));
+    return chValue ?? _result.cellValue(row, column);
   }
 
-  List<QueryColumn> get columns => _result.columns;
+  List<sq.Column> get columns => _result.columns;
+
+  bool get readOnly => _result.readOnly;
 }
 
 class QueryResultViewTheme {
@@ -122,6 +114,7 @@ class _QueryResultState extends State<QueryResultView> {
   final ScrollController _horizontalController = ScrollController();
 
   Cell? selectedCell;
+  bool readOnly = true;
 
   final _shortcuts = <ShortcutActivator, Intent>{
     SingleActivator(LogicalKeyboardKey.f2): _SetCellValueIntent(),
@@ -149,7 +142,7 @@ class _QueryResultState extends State<QueryResultView> {
   }
 
   void _copyToClipboard() {
-    final value = selectedCell?.value.stringValue();
+    final value = selectedCell?.value.stringValue;
 
     if (value != null) {
       Clipboard.setData(ClipboardData(text: value));
@@ -180,9 +173,12 @@ class _QueryResultState extends State<QueryResultView> {
   }
 
   void _onCellClick(int row, int column, QueryResultModel model) {
+    final refCell = model.value(column, row);
+    if (refCell == null) return;
+
     final cell = Cell(
       location: CellLocation(column: column, row: row),
-      value: model.value(column, row),
+      value: refCell,
     );
     widget.onCellClick?.call(cell);
 
@@ -222,15 +218,20 @@ class _QueryResultState extends State<QueryResultView> {
       );
     }
 
-    CellValue value = model.value(vicinity.column, vicinity.row);
-    final strValue = value.stringValue();
-    final isNull = strValue == null;
+    sq.Cell? value = model.value(vicinity.column, vicinity.row);
+    final strValue = value?.stringValue ?? '';
+    final isNull = value?.isNull ?? true;
+
+    final isNumber = switch (value?.type) {
+      sq.ColumnType.integer || sq.ColumnType.double => true,
+      _ => false,
+    };
 
     return TableViewCell(
       child: GestureDetector(
         onTap: () => _onCellClick(vicinity.row, vicinity.column, model),
         child: Container(
-          alignment: Alignment.centerLeft,
+          alignment: isNumber ? Alignment.centerRight : Alignment.centerLeft,
           padding: EdgeInsets.symmetric(horizontal: 4),
           color: selectedCell?.location.equals(vicinity) ?? false
               ? theme.selectedCellBack
@@ -246,7 +247,7 @@ class _QueryResultState extends State<QueryResultView> {
   }
 
   void _onEditCell() {
-    if (selectedCell != null) {
+    if (!readOnly && selectedCell != null) {
       widget.onEditCell?.call(
         Cell(value: selectedCell!.value, location: selectedCell!.location),
       );
@@ -256,6 +257,7 @@ class _QueryResultState extends State<QueryResultView> {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<QueryResultModel>();
+    readOnly = model.readOnly;
 
     final theme = widget.theme ?? QueryResultViewTheme(Theme.of(context));
 

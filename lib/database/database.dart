@@ -1,20 +1,6 @@
-import 'package:sqlite3/common.dart';
-import 'package:sqlite3/sqlite3.dart' as sq;
+import 'package:sqlite_ffi/sqlite_ffi.dart';
 
 // Classes, types, functions to represents sqlite database entities.
-
-enum ColumnType { text, integer, real, blob, none }
-
-ColumnType stringToType(String type) {
-  return switch (type) {
-    'TEXT' => ColumnType.text,
-    'INTEGER' => ColumnType.integer,
-    'REAL' => ColumnType.real,
-    'BLOB' => ColumnType.blob,
-    _ => ColumnType.none,
-  };
-}
-
 class DBColumn {
   final String name;
   final ColumnType type;
@@ -28,6 +14,16 @@ class DBColumn {
     required this.notNull,
     required this.pkIndex,
   });
+}
+
+ColumnType _stringToType(String? type) {
+  return switch (type) {
+    'TEXT' => ColumnType.text,
+    'INTEGER' => ColumnType.integer,
+    'REAL' => ColumnType.double,
+    'BLOB' => ColumnType.blob,
+    _ => ColumnType.none,
+  };
 }
 
 class DBTable {
@@ -45,21 +41,27 @@ class DBTable {
     return null;
   }
 
-  static DBTable create(sq.Database db, Row schemaRow) {
-    final table = DBTable._(name: schemaRow[1], createStmt: schemaRow[3]);
+  static DBTable create(Sqlite3Database db, RowResult schemaRow) {
+    final table = DBTable._(
+      name: schemaRow[1]!.stringValue,
+      createStmt: schemaRow[3]!.stringValue,
+    );
 
     //name,type,notnull,dflt_value,pk
     final sql = 'PRAGMA TABLE_INFO(${table.name})';
-    for (final row in db.select(sql)) {
-      final nnull = row['notnull'] > 0;
-      final pkIndex = row['pk'];
-      final column = DBColumn(
-        name: row['name'],
-        type: stringToType(row['type']),
-        notNull: nnull,
-        pkIndex: pkIndex,
-      );
-      table.columns.add(column);
+    final stmt = db.select(sql);
+    if (stmt != null) {
+      for (final row in stmt) {
+        final nnull = row['notnull']?.value > 0;
+        final pkIndex = row['pk']?.value;
+        final column = DBColumn(
+          name: row['name']?.stringValue ?? '',
+          type: _stringToType(row['type']?.stringValue),
+          notNull: nnull,
+          pkIndex: pkIndex,
+        );
+        table.columns.add(column);
+      }
     }
 
     return table;
@@ -69,7 +71,7 @@ class DBTable {
 ///
 /// Implement SQLite database model
 class Database {
-  final sq.Database db;
+  final Sqlite3Database db;
   final tables = <DBTable>[];
 
   Database._({required this.db}) {
@@ -85,9 +87,12 @@ class Database {
 
   void loadDBInfo() {
     final sql = 'select [type], name, tbl_name, sql from sqlite_schema';
-
-    for (final row in db.select(sql)) {
-      switch (row[0]) {
+    final stmt = db.select(sql);
+    if (stmt == null) {
+      return;
+    }
+    for (final row in stmt) {
+      switch (row[0]?.stringValue) {
         case 'table':
           final table = DBTable.create(db, row);
           tables.add(table);
@@ -101,8 +106,9 @@ class Database {
     }
   }
 
-  ResultSet query(String stmt, [List<Object?> parameters = const []]) {
-    return db.select(stmt, parameters);
+  /// Run statment and return result
+  Statement? query(String stmt) {
+    return db.select(stmt);
   }
 
   static Map<String, Database> databases = {};
@@ -114,12 +120,13 @@ class Database {
     var db = databases[dbName];
     if (db == null) {
       try {
-        final dbint = sq.sqlite3.open(dbName);
-        db = Database._(db: dbint);
-        databases[dbName] = db;
+        final dbint = Sqlite3Database.open(dbName, false);
+        if (dbint != null) {
+          db = Database._(db: dbint);
+          databases[dbName] = db;
+        }
       } catch (e) {
         db = null;
-        // ok
       }
     }
     return db;
